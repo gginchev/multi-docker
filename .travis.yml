@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t gginchev/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run gginchev/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t gginchev/multi-client ./client
+  - docker build -t gginchev/multi-nginx ./nginx
+  - docker build -t gginchev/multi-server ./server
+  - docker build -t gginchev/multi-worker ./worker
+
+- echo "$DOCKER_PASSWORD" | docler login -u "$DOCKER_ID" --password-stdin
+
+- docker push gginchev/multi-client
+- docker push gginchev/multi-nginx
+- docker push gginchev/multi-server
+- docker push gginchev/multi-worker
